@@ -34,6 +34,17 @@ describe Capybara::Webkit::Connection do
     connection.port.should be_between 0x400, 0xffff
   end
 
+  it 'sets appropriate options on its socket' do
+    socket = stub('socket')
+    TCPSocket.stub(:open).and_return(socket)
+    if defined?(Socket::TCP_NODELAY)
+      socket.should_receive(:setsockopt).with(:IPPROTO_TCP, :TCP_NODELAY, 1)
+    else
+      socket.should_not_receive(:setsockopt)
+    end
+    Capybara::Webkit::Connection.new
+  end
+
   it "chooses a new port number for a new connection" do
     new_connection = Capybara::Webkit::Connection.new
     new_connection.port.should_not == connection.port
